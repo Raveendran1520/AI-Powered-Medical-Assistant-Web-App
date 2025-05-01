@@ -1,0 +1,9 @@
+Flask==2.0.3
+Werkzeug==2.0.3
+gradio==3.0.10
+pillow==8.4.0
+requests==2.26.0
+python-dotenv==0.19.2
+gTTS==2.2.4
+pydub==0.25.1
+openai==0.27.1

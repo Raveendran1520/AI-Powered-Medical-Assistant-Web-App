@@ -1,0 +1,20 @@
+type,file_path,question
+image,images/legs_Pain.jpg,Is something wrong with my leg ?
+image,images/headache.webp,Does this image suggest any health issue?
+image,images/stress.jpg,Is this related to stress?
+image,images/fever.jpg,Does this image suggest a fever?
+image,images/skinItchy.avif,Can you identify any issue from this image?
+image,images/coughh.jpg,Is this image showing symptoms of cough?
+image,images/migraine1.webp,Is this a migraine symptom?
+image,images/eyered.jpg,Is there an eye infection visible?
+image,images/facial_pain1.webp,Is this person in pain?
+image,images/dandruff.webp,Is this leeds to hairfall?
+audio,"audio/patient_question1.mp3",
+audio,"audio/patient_question2.mp3",
+audio,"audio/patient_question3.mp3",
+audio,"audio/patient_question4.mp3",
+audio,"audio/patient_question5.mp3",
+audio,"audio/patient_question6.mp3",
+audio,"audio/patient_question7.mp3",
+audio,"audio/patient_question8.mp3",
+audio,"audio/patient_question9.mp3",

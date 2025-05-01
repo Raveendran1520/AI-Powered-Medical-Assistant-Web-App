@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Medical Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* [Your original styles here, unchanged] */
+        body { margin: 0; font-family: 'Poppins', sans-serif; background: linear-gradient(to right, #e0f7fa, #ffffff); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .container { background: #ffffff; padding: 30px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); width: 100%; max-width: 750px; }
+        h1 { text-align: center; color: #00796b; font-weight: 600; margin-bottom: 20px; }
+        label { font-weight: 600; margin-top: 15px; display: block; color: #004d40; }
+        input[type="file"], textarea, button { width: 96%; margin-top: 8px; padding: 12px; border-radius: 8px; border: 1px solid #b2dfdb; background: #f9f9f9; font-size: 14px; }
+        textarea { resize: vertical; }
+        button { background: #00796b; color: white; font-weight: bold; border: none; transition: background 0.3s ease; margin-top: 20px; }
+        button:hover { background: #004d40; }
+        audio, video, img { margin-top: 20px; width: 100%; border-radius: 10px; }
+        hr { margin: 20px 0; border: 0; border-top: 1px solid #ccc; }
+        #result { margin-top: 30px; padding: 20px; background: #e0f2f1; border-radius: 10px; }
+        .buttons-inline { display: flex; gap: 10px; margin-top: 10px; }
+        .buttons-inline button { flex: 1; }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🩺 AI Doctor Assistant</h1>
+
+    <form id="upload-form" enctype="multipart/form-data" method="POST" action="/process">
+        
+        <label>🎤 Upload or Record Audio</label>
+        <input type="file" id="audio_input" name="audio_input" accept="audio/*">
+        <div class="buttons-inline">
+            <button type="button" onclick="startRecording()">Start Recording</button>
+            <button type="button" onclick="stopRecording()">Stop Recording</button>
+        </div>
+
+        <hr>
+
+        <label>📸 Upload or Capture Image</label>
+        <input type="file" id="image_input" name="image_input" accept="image/*">
+        <div class="buttons-inline">
+            <button type="button" onclick="captureImage()">Capture Image</button>
+        </div>
+        <video id="webcam" autoplay playsinline></video>
+
+        <hr>
+
+        <label>📝 Additional Symptoms (optional)</label>
+        <textarea id="text_input" name="text_input" placeholder="Describe your symptoms..." rows="4"></textarea>
+
+        <button type="submit" style="width:98%;">🚀 Submit for AI Diagnosis</button>
+    </form>
+
+    <div id="result"></div> 
+</div>
+
+<script>
+    let mediaRecorder;
+    let recordedChunks = [];
+    let webcamStream;
+    const webcamButton = document.querySelector('button[onclick="captureImage()"]');
+    let isWebcamActive = false;
+
+    function startRecording() {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                recordedChunks = [];
+
+                mediaRecorder.addEventListener("dataavailable", function(e) {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                });
+            });
+    }
+
+    function stopRecording() {
+        if (mediaRecorder) {
+            mediaRecorder.stop();
+            mediaRecorder.addEventListener("stop", function() {
+                const audioBlob = new Blob(recordedChunks, { type: 'audio/mp3' });
+                const audioFile = new File([audioBlob], "recorded_audio.mp3");
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(audioFile);
+                document.getElementById('audio_input').files = dataTransfer.files;
+            });
+        }
+    }
+
+    function captureImage() {
+        const video = document.getElementById('webcam');
+
+        if (!isWebcamActive) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    webcamStream = stream;
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    isWebcamActive = true;
+                    webcamButton.textContent = "📸 Take Photo";
+                });
+        } else {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            canvas.toBlob(function(blob) {
+                const imgFile = new File([blob], "captured_image.jpg");
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(imgFile);
+                document.getElementById('image_input').files = dataTransfer.files;
+            }, 'image/jpeg');
+
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+            }
+            video.srcObject = null;
+            video.style.display = 'none';
+            isWebcamActive = false;
+            webcamButton.textContent = "📸 Capture Image";
+        }
+    }
+
+    document.getElementById('upload-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch('/process', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Server Response:', data);
+
+            let resultHTML = "";
+
+            if (data.image) {
+                resultHTML += `<h3>📸 Uploaded Image:</h3><img src="/uploads/${data.image}" alt="Uploaded Image">`;
+            }
+
+            if (data.transcript) {
+                resultHTML += `<h3>📝 Transcribed Text:</h3><p>${data.transcript}</p>`;
+            } else {
+                resultHTML += `<h3>📝 Transcribed Text:</h3><p><i>(No transcription available)</i></p>`;
+            }
+
+            if (data.diagnosis_audio) {
+                resultHTML += `<h3>🧠 Audio Diagnosis:</h3><p>${data.diagnosis_audio}</p>`;
+            } else {
+                resultHTML += `<h3>🧠 Audio Diagnosis:</h3><p><i>(⚠️No audio is Uploaded...!)</i></p>`;
+            }
+
+            if (data.diagnosis_image) {
+                resultHTML += `<h3>🖼️ Image Diagnosis:</h3><p>${data.diagnosis_image}</p>`;
+            } else {
+                resultHTML += `<h3>🖼️ Image Diagnosis:</h3><p><i>(⚠️No image is Uploaded...!)</i></p>`;
+            }
+
+            if (data.voice) {
+                resultHTML += `<h3>🔊 AI Doctor Voice:</h3><audio controls src="/voice/${data.voice}"></audio>`;
+            }
+
+            document.getElementById('result').innerHTML = resultHTML;
+        })
+        .catch(error => {
+            document.getElementById('result').innerHTML = `<p style="color:red;">⚠️ Error processing your request.</p>`;
+            console.error(error);
+        });
+    });
+</script>
+
+</body>
+</html>
