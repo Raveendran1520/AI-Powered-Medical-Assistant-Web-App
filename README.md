@@ -87,7 +87,7 @@ pip install -r requirements.txt
 1. Make sure audio/image/text input devices work in your browser.
 2. Run the Flask server:
    ```bash
-   python app.py
+   python flask_app.py
    ```
 3. Open your browser at:  
    ```
@@ -98,9 +98,9 @@ pip install -r requirements.txt
 
 ## 🔄 Project Phases and Python Commands
 
-| Phase                     | Description                          | Command                            |
+| Phase                    | Description                          |      Command                        |
 |--------------------------|--------------------------------------|-------------------------------------|
 | Phase 1: Brain of Doctor | Handles diagnosis logic               | `python doctor_brain.py`            |
 | Phase 2: Voice of Patient| Handles audio input + transcription   | `python voice_of_patient.py`        |
 | Phase 3: Voice of Doctor | Generates speech output               | `python voice_of_doctor.py`         |
-| Phase 4: Flask Web UI    | Web interface with image/audio input | `python flask_app.py`                     |
+| Phase 4: Flask Web UI    | Web interface with image/audio input | `python flask_app.py`                |
